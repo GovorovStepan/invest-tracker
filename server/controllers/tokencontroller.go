@@ -1,10 +1,10 @@
 package controllers
 
 import (
-	"auth/database"
-	"auth/models"
-	"auth/token"
 	"net/http"
+	"server/database"
+	"server/models"
+	"server/token"
 
 	"github.com/gin-gonic/gin"
 )

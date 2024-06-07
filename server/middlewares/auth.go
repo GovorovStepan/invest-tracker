@@ -3,7 +3,7 @@ package middlewares
 import (
 	"github.com/gin-gonic/gin"
 
-	"auth/token"
+	"server/token"
 )
 
 func Auth() gin.HandlerFunc {

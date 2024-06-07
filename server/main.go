@@ -1,21 +1,59 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
+
 	"github.com/gin-gonic/gin"
 
-	"auth/controllers"
-	"auth/database"
-	"auth/middlewares"
+	"server/controllers"
+	"server/database"
+	"server/middlewares"
 )
 
 func main() {
-	database.Connect("host=localhost user=root password=root dbname=gsp port=5432 sslmode=disable TimeZone=Asia/Ho_Chi_Minh")
+	port := os.Getenv("DB_PORT")
+	if port == "" {
+		port = "8080"
+	}
+	sslmode := os.Getenv("DB_SSLMODE")
+	if sslmode == "" {
+		sslmode = "disable "
+	}
+	timezone := os.Getenv("DB_TIMEZONE")
+	if timezone == "" {
+		timezone = "UTC"
+	}
+	dbHost, exists := os.LookupEnv("DB_HOST")
+	if !exists {
+		log.Fatal("DB_HOST is not set")
+	}
+	dbUser, exists := os.LookupEnv("DB_USER")
+	if !exists {
+		log.Fatal("DB_USER is not set")
+	}
+	dbPass, exists := os.LookupEnv("DB_PASS")
+	if !exists {
+		log.Fatal("DB_PASS is not set")
+	}
+	dbName, exists := os.LookupEnv("DB_NAME")
+	if !exists {
+		log.Fatal("DB_NAME is not set")
+	}
+
+	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", dbHost, dbUser, dbPass, dbName, port, sslmode, timezone)
+
+	database.Connect(connectionString)
 	database.Migrate()
 	router := initRouter()
 	router.Run(":8080")
 }
 func initRouter() *gin.Engine {
 	router := gin.Default()
+
+	router.GET("/health", controllers.Health)
+
 	api := router.Group("/api")
 	{
 		token := api.Group("/token")
@@ -31,6 +69,7 @@ func initRouter() *gin.Engine {
 		{
 			secured.GET("/secret", controllers.Secret)
 		}
+
 	}
 	return router
 }

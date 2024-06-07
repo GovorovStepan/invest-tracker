@@ -6,9 +6,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"auth/database"
-	"auth/models"
-	"auth/token"
+	"server/database"
+	"server/models"
+	"server/token"
 )
 
 type LoginRequest struct {

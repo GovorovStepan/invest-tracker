@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+
+    server:
+      build:
+        context: .
+        dockerfile: docker/server/Dockerfile
+      container_name: server
+      ports:
+        - "8080:8080"
+      env_file:
+        - .env
+      volumes:
+        - .:/server
+      networks:
+        - main
+      healthcheck:
+        test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+
+    db:
+      image: postgres
+      restart: unless-stopped
+      container_name: db
+      environment:
+        POSTGRES_USER: ${DB_USERNAME}
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
+        POSTGRES_DB: ${DB_NAME}
+      ports:
+        - "5432:5432"
+      networks:
+        - main
+      volumes:
+        - ./db:/var/lib/postgresql/data
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+
+
+    pgadmin:
+      image: dpage/pgadmin4
+      restart: unless-stopped
+      container_name: pgadmin
+      ports:
+        - "5050:80"
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+        PGADMIN_DEFAULT_USER: ${DB_USERNAME}
+        PGADMIN_DEFAULT_PASSWORD: ${DB_PASSWORD}
+      volumes:
+        - ./pgadmin:/var/lib/pgadmin
+      networks:
+        - main
+
+         
+    cache:
+      image: redis:alpine
+      restart: always
+      ports:
+        - '6379:6379'
+      command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASS}
+      volumes: 
+        - ./cache:/data
+      networks:
+        - main
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+
+networks:
+  main:
+    driver: bridge
+
