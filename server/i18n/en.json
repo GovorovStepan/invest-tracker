@@ -1,0 +1,24 @@
+{
+  "error": {
+    "binding_json": "Error binding JSON",
+    "fetching_record": "Error fetching record from database",
+    "saving_record": "Error saving record to database"
+  },
+  "user": {
+    "create": {
+      "error": "User creation error",
+      "success":"User created successfully"
+    },
+    "login":{
+      "error":{
+        "password" :"Incorrect Password",
+        "email" :"User with this Email not found"
+      } 
+    }
+  },
+  "settings": {
+    "update":{
+      "success":"Settings updated successfully"
+    } 
+  }
+}

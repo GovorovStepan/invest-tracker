@@ -14,12 +14,13 @@ func Auth() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
-		err := token.ValidateAccessToken(tokenString)
+		claims, err := token.ValidateAccessToken(tokenString)
 		if err != nil {
 			context.JSON(401, gin.H{"error": err.Error()})
 			context.Abort()
 			return
 		}
+		context.Set("UserID", claims.UserID)
 		context.Next()
 	}
 }

@@ -9,6 +9,7 @@ import (
 
 var jwtKey = []byte("gsptravelsecret") //TODO: move to env
 type AccessTokenClaim struct {
+	UserID   string `json:"userID"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	jwt.StandardClaims
@@ -19,9 +20,10 @@ type RefreshTokenClaims struct {
 	jwt.StandardClaims
 }
 
-func GenerateAccessToken(email string, username string) (tokenString string, err error) {
+func GenerateAccessToken(email string, username string, id string) (tokenString string, err error) {
 	expirationTime := time.Now().Add(1 * time.Hour) //TODO: move to env
 	claims := &AccessTokenClaim{
+		UserID:   id,
 		Email:    email,
 		Username: username,
 		StandardClaims: jwt.StandardClaims{
@@ -45,7 +47,7 @@ func GenerateRefreshToken(userID string) (tokenString string, err error) {
 	return
 }
 
-func ValidateAccessToken(signedToken string) (err error) {
+func ValidateAccessToken(signedToken string) (claims *AccessTokenClaim, err error) {
 	token, err := jwt.ParseWithClaims(
 		signedToken,
 		&AccessTokenClaim{},
@@ -54,18 +56,18 @@ func ValidateAccessToken(signedToken string) (err error) {
 		},
 	)
 	if err != nil {
-		return
+		return nil, err
 	}
 	claims, ok := token.Claims.(*AccessTokenClaim)
 	if !ok {
 		err = errors.New("claims parse problem")
-		return
+		return nil, err
 	}
 	if claims.ExpiresAt < time.Now().Local().Unix() {
 		err = errors.New("token expired")
-		return
+		return nil, err
 	}
-	return
+	return claims, nil
 }
 
 func ValidateRefreshToken(signedToken string) (claims *RefreshTokenClaims, err error) {

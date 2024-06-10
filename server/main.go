@@ -1,11 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 
+	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/rs/zerolog/log"
+	"golang.org/x/text/language"
 
 	"server/controllers"
 	"server/database"
@@ -27,19 +31,19 @@ func main() {
 	}
 	dbHost, exists := os.LookupEnv("DB_HOST")
 	if !exists {
-		log.Fatal("DB_HOST is not set")
+		log.Fatal().Msg("DB_HOST is not set")
 	}
-	dbUser, exists := os.LookupEnv("DB_USER")
+	dbUser, exists := os.LookupEnv("DB_USERNAME")
 	if !exists {
-		log.Fatal("DB_USER is not set")
+		log.Fatal().Msg("DB_USERNAME is not set")
 	}
-	dbPass, exists := os.LookupEnv("DB_PASS")
+	dbPass, exists := os.LookupEnv("DB_PASSWORD")
 	if !exists {
-		log.Fatal("DB_PASS is not set")
+		log.Fatal().Msg("DB_PASSWORD is not set")
 	}
 	dbName, exists := os.LookupEnv("DB_NAME")
 	if !exists {
-		log.Fatal("DB_NAME is not set")
+		log.Fatal().Msg("DB_NAME is not set")
 	}
 
 	connectionString := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s", dbHost, dbUser, dbPass, dbName, port, sslmode, timezone)
@@ -49,10 +53,20 @@ func main() {
 	router := initRouter()
 	router.Run(":8080")
 }
+
 func initRouter() *gin.Engine {
+
+	bundle := i18n.NewBundle(language.English)
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+	bundle.MustLoadMessageFile("i18n/en.json")
+	bundle.MustLoadMessageFile("i18n/ru.json")
+
 	router := gin.Default()
+	router.Use(logger.SetLogger())
+	router.Use(middlewares.Localization(bundle))
 
 	router.GET("/health", controllers.Health)
+	router.GET("/test", controllers.GetSettings)
 
 	api := router.Group("/api")
 	{
@@ -68,6 +82,13 @@ func initRouter() *gin.Engine {
 		secured := api.Group("/secured").Use(middlewares.Auth())
 		{
 			secured.GET("/secret", controllers.Secret)
+		}
+
+		settings := api.Group("/settings").Use(middlewares.Auth())
+		{
+			settings.GET("/", controllers.GetSettings)
+			settings.POST("/", controllers.UpdateSettings)
+
 		}
 
 	}
