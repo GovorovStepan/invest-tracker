@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"gorm.io/gorm"
 
 	"server/database"
 	"server/models"
@@ -21,6 +22,8 @@ func RegisterUser(context *gin.Context) {
 	localizer, _ := context.Get("localizer")
 	localizerInstance := localizer.(*i18n.Localizer)
 	var user models.User
+	var settings models.Settings
+
 	if err := context.ShouldBindJSON(&user); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		context.Abort()
@@ -31,8 +34,19 @@ func RegisterUser(context *gin.Context) {
 		context.Abort()
 		return
 	}
-	record := database.Instance.Create(&user)
-	if record.Error != nil {
+
+	err := database.Instance.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+		settings.UserID = user.ID
+		if err := tx.Create(&settings).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "user.create.error",
 		})
@@ -42,7 +56,7 @@ func RegisterUser(context *gin.Context) {
 		return
 	}
 
-	accessTokenString, err := token.GenerateAccessToken(user.Email, user.Username, fmt.Sprint(user.ID))
+	accessTokenString, err := token.GenerateAccessToken(user.Email, fmt.Sprint(user.ID))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		context.Abort()
@@ -94,7 +108,7 @@ func LoginUser(context *gin.Context) {
 		context.Abort()
 		return
 	}
-	accessTokenString, err := token.GenerateAccessToken(user.Email, user.Username, fmt.Sprint(user.ID))
+	accessTokenString, err := token.GenerateAccessToken(user.Email, fmt.Sprint(user.ID))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		context.Abort()

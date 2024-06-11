@@ -6,7 +6,8 @@ import (
 
 type Settings struct {
 	gorm.Model
-	User     User   `json:"userId" gorm:"unique"`
+	UserID   uint   `json:"userId" gorm:"unique"`
+	User     User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Language string `json:"language"  gorm:"default:ru"`
 	Currency string `json:"currency"  gorm:"default:rub"`
 }

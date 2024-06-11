@@ -1,4 +1,4 @@
-db
-cache
-pgadmin
+db/
+cache/
+pgadmin/
 .env

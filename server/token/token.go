@@ -9,9 +9,8 @@ import (
 
 var jwtKey = []byte("gsptravelsecret") //TODO: move to env
 type AccessTokenClaim struct {
-	UserID   string `json:"userID"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
+	UserID string `json:"userID"`
+	Email  string `json:"email"`
 	jwt.StandardClaims
 }
 
@@ -20,12 +19,11 @@ type RefreshTokenClaims struct {
 	jwt.StandardClaims
 }
 
-func GenerateAccessToken(email string, username string, id string) (tokenString string, err error) {
+func GenerateAccessToken(email string, id string) (tokenString string, err error) {
 	expirationTime := time.Now().Add(1 * time.Hour) //TODO: move to env
 	claims := &AccessTokenClaim{
-		UserID:   id,
-		Email:    email,
-		Username: username,
+		UserID: id,
+		Email:  email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},

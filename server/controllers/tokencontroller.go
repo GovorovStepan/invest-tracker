@@ -34,7 +34,7 @@ func RefreshToken(context *gin.Context) {
 		context.Abort()
 		return
 	}
-	accessTokenString, err := token.GenerateAccessToken(user.Email, user.Username, fmt.Sprint(user.ID))
+	accessTokenString, err := token.GenerateAccessToken(user.Email, fmt.Sprint(user.ID))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		context.Abort()
