@@ -7,18 +7,31 @@
   "user": {
     "create": {
       "error": "User creation error",
-      "success":"User created successfully"
+      "success": "User created successfully"
     },
-    "login":{
-      "error":{
-        "password" :"Incorrect Password",
-        "email" :"User with this Email not found"
-      } 
+    "login": {
+      "error": {
+        "password": "Incorrect Password",
+        "email": "User with this Email not found"
+      }
     }
   },
   "settings": {
-    "update":{
-      "success":"Settings updated successfully"
-    } 
+    "update": {
+      "success": "Settings updated successfully"
+    }
+  },
+  "portfolio": {
+    "get": {
+      "error": "Portfolio get error"
+    },
+    "create": {
+      "error": "Portfolio creation error",
+      "success": "Portfolio created successfully"
+    },
+    "update": {
+      "error": "Portfolio update error",
+      "success": "Portfolio updated successfully"
+    }
   }
 }

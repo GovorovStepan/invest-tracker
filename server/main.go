@@ -79,16 +79,19 @@ func initRouter() *gin.Engine {
 			user.POST("/register", controllers.RegisterUser)
 			user.POST("/login", controllers.LoginUser)
 		}
-		secured := api.Group("/secured").Use(middlewares.Auth())
-		{
-			secured.GET("/secret", controllers.Secret)
-		}
 
 		settings := api.Group("/settings").Use(middlewares.Auth())
 		{
 			settings.GET("/", controllers.GetSettings)
 			settings.POST("/", controllers.UpdateSettings)
 
+		}
+		portfolio := api.Group("/portfolio").Use(middlewares.Auth())
+		{
+			portfolio.POST("/", controllers.CreatePortfolio)
+
+			portfolio.GET("/:id", controllers.GetPortfolio)
+			portfolio.POST("/:id", controllers.UpdatePortfolio)
 		}
 
 	}

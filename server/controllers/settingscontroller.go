@@ -9,21 +9,30 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-type UpdateRequest struct {
-	UserID   string `json:"userId"`
-	Language string `json:"language"`
-	Currency string `json:"currency"`
+type SettingsUpdateRequest struct {
+	Language string `json:"language" binding:"required"`
+	Currency string `json:"currency" binding:"required"`
 }
 
 func GetSettings(context *gin.Context) {
 	var settings models.Settings
 	// Получение локализатора из контекста
-	localizer, _ := context.Get("localizer")
+	localizer, exists := context.Get("localizer")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
+		context.Abort()
+		return
+	}
 	localizerInstance := localizer.(*i18n.Localizer)
 
-	user_id, _ := context.Get("UserID")
+	userID, exists := context.Get("userID")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found"})
+		context.Abort()
+		return
+	}
 
-	record := database.Instance.Where("user = ?", user_id).First(&settings)
+	record := database.Instance.Where("user = ?", userID).First(&settings)
 
 	if record.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
@@ -38,12 +47,24 @@ func GetSettings(context *gin.Context) {
 }
 
 func UpdateSettings(context *gin.Context) {
-	var request UpdateRequest
+	var request SettingsUpdateRequest
 	var settings models.Settings
 
 	// Получение локализатора из контекста
-	localizer, _ := context.Get("localizer")
+	localizer, exists := context.Get("localizer")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
+		context.Abort()
+		return
+	}
 	localizerInstance := localizer.(*i18n.Localizer)
+
+	userID, exists := context.Get("userID")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found"})
+		context.Abort()
+		return
+	}
 
 	if err := context.ShouldBindJSON(&request); err != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
@@ -53,7 +74,7 @@ func UpdateSettings(context *gin.Context) {
 		context.Abort()
 		return
 	}
-	record := database.Instance.Where("user = ?", request.UserID).First(&settings)
+	record := database.Instance.Where("user = ?", userID).First(&settings)
 
 	if record.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{

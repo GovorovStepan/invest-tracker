@@ -14,12 +14,17 @@ import (
 )
 
 type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 func RegisterUser(context *gin.Context) {
-	localizer, _ := context.Get("localizer")
+	localizer, exists := context.Get("localizer")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
+		context.Abort()
+		return
+	}
 	localizerInstance := localizer.(*i18n.Localizer)
 	var user models.User
 	var settings models.Settings
@@ -80,7 +85,12 @@ func RegisterUser(context *gin.Context) {
 func LoginUser(context *gin.Context) {
 	var request LoginRequest
 	var user models.User
-	localizer, _ := context.Get("localizer")
+	localizer, exists := context.Get("localizer")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
+		context.Abort()
+		return
+	}
 	localizerInstance := localizer.(*i18n.Localizer)
 	if err := context.ShouldBindJSON(&request); err != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
