@@ -2,7 +2,8 @@
   "error": {
     "binding_json": "Error binding JSON",
     "fetching_record": "Error fetching record from database",
-    "saving_record": "Error saving record to database"
+    "saving_record": "Error saving record to database",
+    "invalid_id" : "Invalid ID"
   },
   "user": {
     "create": {
@@ -32,6 +33,30 @@
     "update": {
       "error": "Portfolio update error",
       "success": "Portfolio updated successfully"
+    },
+    "delete": {
+      "error": "Portfolio delete error",
+      "success": "Portfolio deleted successfully"
+    }
+  },
+  "position": {
+    "get_by_id": {
+      "error": "Position get error"
+    },
+    "get_all": {
+      "error": "Positions get error"
+    },
+    "create": {
+      "error": "Position addition error",
+      "success": "Position added successfully"
+    },
+    "update": {
+      "error": "Position update error",
+      "success": "Position updated successfully"
+    },
+    "delete": {
+      "error": "Position delete error",
+      "success": "Position deleted successfully"
     }
   }
 }

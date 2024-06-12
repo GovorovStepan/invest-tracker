@@ -9,19 +9,20 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-type PortfolioRequest struct {
-	Name string `json:"name" binding:"required"`
+type PositionRequest struct {
+	Ticker   string `json:"ticker" binding:"required"`
+	Exchange string `json:"exchange" binding:"required"`
+	Note     string `json:"note"`
 }
 
-type PortfolioURI struct {
-	ID uint `uri:"id" binding:"required,uint"`
+type PositionURI struct {
+	PortfolioID uint `uri:"portfolio_id" binding:"uint"`
+	PositionID  uint `uri:"position_id" binding:"uint"`
 }
 
-func GetPortfolio(context *gin.Context) {
-	var portfolio models.Portfolio
-	var uri PortfolioURI
-
-	// Получение локализатора из контекста
+func GetPositionByID(context *gin.Context) {
+	var position models.Position
+	var uri PositionURI
 	localizer, exists := context.Get("localizer")
 	if !exists {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
@@ -40,10 +41,10 @@ func GetPortfolio(context *gin.Context) {
 		return
 	}
 
-	record := database.Instance.Where("id = ?", uri.ID).First(&portfolio)
+	record := database.Instance.Where("id = ?", uri.PositionID).First(&position)
 	if record.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "portfolio.get.error",
+			MessageID: "position.get_by_id.error",
 		})
 		context.JSON(http.StatusInternalServerError, gin.H{"error": message})
 		context.Abort()
@@ -51,13 +52,11 @@ func GetPortfolio(context *gin.Context) {
 	}
 
 	context.JSON(http.StatusOK, gin.H{"data": record})
+
 }
-
-func DeletePortfolio(context *gin.Context) {
-	var portfolio models.Portfolio
-	var uri PortfolioURI
-
-	// Получение локализатора из контекста
+func GetPositions(context *gin.Context) {
+	var position models.Position
+	var uri PositionURI
 	localizer, exists := context.Get("localizer")
 	if !exists {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
@@ -76,79 +75,23 @@ func DeletePortfolio(context *gin.Context) {
 		return
 	}
 
-	database.Instance.Delete(&portfolio, uri.ID)
-
-	result := database.Instance.First(&portfolio, uri.ID)
-
-	if result.Error == nil {
+	records := database.Instance.Where("portfolio_id = ?", uri.PortfolioID).Find(&position)
+	if records.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "portfolio.delete.error",
-		})
-		context.JSON(http.StatusInternalServerError, gin.H{"error": message})
-		context.Abort()
-	}
-
-	message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "portfolio.delete.success",
-	})
-	context.JSON(http.StatusOK, gin.H{"message": message})
-
-}
-
-func CreatePortfolio(context *gin.Context) {
-	var request PortfolioRequest
-	var portfolio models.Portfolio
-
-	// Получение локализатора из контекста
-	localizer, exists := context.Get("localizer")
-	if !exists {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
-		context.Abort()
-		return
-	}
-	localizerInstance := localizer.(*i18n.Localizer)
-
-	// Привязка данных запроса к структуре
-	if err := context.ShouldBindJSON(&request); err != nil {
-		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "error.binding_json",
-		})
-		context.JSON(http.StatusBadRequest, gin.H{"error": message})
-		context.Abort()
-		return
-	}
-
-	userID, exists := context.Get("userID")
-	if !exists {
-		context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found"})
-		context.Abort()
-		return
-	}
-
-	// Присвоение значений новой записи портфолио
-	portfolio.Name = request.Name
-	portfolio.UserID = userID.(uint) // Предполагая, что идентификатор пользователя - это uint
-
-	if err := database.Instance.Create(&portfolio).Error; err != nil {
-		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "portfolio.create.error",
+			MessageID: "position.get_all.error",
 		})
 		context.JSON(http.StatusInternalServerError, gin.H{"error": message})
 		context.Abort()
 		return
 	}
-	message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "portfolio.create.success",
-	})
 
-	context.JSON(http.StatusCreated, gin.H{"message": message, "id": portfolio.ID})
+	context.JSON(http.StatusOK, gin.H{"data": records})
+
 }
-func UpdatePortfolio(context *gin.Context) {
-	var request PortfolioRequest
-	var portfolio models.Portfolio
-	var uri PortfolioURI
-
-	// Получение локализатора из контекста
+func CreatePosition(context *gin.Context) {
+	var request PositionRequest
+	var uri PositionURI
+	var position models.Position
 	localizer, exists := context.Get("localizer")
 	if !exists {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
@@ -177,7 +120,58 @@ func UpdatePortfolio(context *gin.Context) {
 		return
 	}
 
-	record := database.Instance.Where("id  = ?", uri.ID).First(&portfolio)
+	position.Ticker = request.Ticker
+	position.Exchange = request.Exchange
+	position.Note = request.Note
+	position.PortfolioID = uri.PortfolioID
+
+	if err := database.Instance.Create(&position).Error; err != nil {
+		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "position.create.error",
+		})
+		context.JSON(http.StatusInternalServerError, gin.H{"error": message})
+		context.Abort()
+		return
+	}
+	message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
+		MessageID: "position.create.success",
+	})
+
+	context.JSON(http.StatusCreated, gin.H{"message": message, "id": position.ID})
+}
+func UpdatePosition(context *gin.Context) {
+	var request PositionRequest
+	var uri PositionURI
+	var position models.Position
+	localizer, exists := context.Get("localizer")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
+		context.Abort()
+		return
+	}
+	localizerInstance := localizer.(*i18n.Localizer)
+
+	// Привязка данных запроса к структуре
+	if err := context.ShouldBindUri(&uri); err != nil {
+		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "error.invalid_id",
+		})
+		context.JSON(http.StatusBadRequest, gin.H{"error": message})
+		context.Abort()
+		return
+	}
+
+	// Привязка данных запроса к структуре
+	if err := context.ShouldBindJSON(&request); err != nil {
+		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "error.binding_json",
+		})
+		context.JSON(http.StatusBadRequest, gin.H{"error": message})
+		context.Abort()
+		return
+	}
+
+	record := database.Instance.Where("id  = ?", uri.PositionID).First(&position)
 
 	if record.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
@@ -188,12 +182,14 @@ func UpdatePortfolio(context *gin.Context) {
 		return
 	}
 
-	portfolio.Name = request.Name
+	position.Ticker = request.Ticker
+	position.Exchange = request.Exchange
+	position.Note = request.Note
 
 	// Сохранение изменений и проверка на ошибки
-	if err := database.Instance.Save(&portfolio).Error; err != nil {
+	if err := database.Instance.Save(&position).Error; err != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-			MessageID: "portfolio.update.error",
+			MessageID: "position.update.error",
 		})
 		context.JSON(http.StatusInternalServerError, gin.H{"error": message})
 		context.Abort()
@@ -201,8 +197,48 @@ func UpdatePortfolio(context *gin.Context) {
 	}
 
 	message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "portfolio.update.success",
+		MessageID: "position.update.success",
 	})
 
 	context.JSON(http.StatusOK, gin.H{"message": message})
+
+}
+func DeletePosition(context *gin.Context) {
+	var position models.Position
+	var uri PositionURI
+	localizer, exists := context.Get("localizer")
+	if !exists {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Localizer not found"})
+		context.Abort()
+		return
+	}
+	localizerInstance := localizer.(*i18n.Localizer)
+
+	// Привязка данных запроса к структуре
+	if err := context.ShouldBindUri(&uri); err != nil {
+		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "error.invalid_id",
+		})
+		context.JSON(http.StatusBadRequest, gin.H{"error": message})
+		context.Abort()
+		return
+	}
+
+	database.Instance.Delete(&position, uri.PositionID)
+
+	result := database.Instance.First(&position, uri.PositionID)
+
+	if result.Error == nil {
+		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
+			MessageID: "position.delete.error",
+		})
+		context.JSON(http.StatusInternalServerError, gin.H{"error": message})
+		context.Abort()
+	}
+
+	message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
+		MessageID: "position.delete.success",
+	})
+	context.JSON(http.StatusOK, gin.H{"message": message})
+
 }
