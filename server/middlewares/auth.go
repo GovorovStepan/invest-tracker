@@ -1,9 +1,9 @@
 package middlewares
 
 import (
-	"github.com/gin-gonic/gin"
-
 	"server/token"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Auth() gin.HandlerFunc {
@@ -20,7 +20,7 @@ func Auth() gin.HandlerFunc {
 			context.Abort()
 			return
 		}
-		context.Set("UserID", claims.UserID)
+		context.Set("userID", claims.UserID)
 		context.Next()
 	}
 }

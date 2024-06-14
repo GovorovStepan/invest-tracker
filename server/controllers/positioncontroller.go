@@ -9,15 +9,18 @@ import (
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 )
 
-type PositionRequest struct {
+type PositionCreateRequest struct {
 	Ticker   string `json:"ticker" binding:"required"`
 	Exchange string `json:"exchange" binding:"required"`
 	Note     string `json:"note"`
 }
+type PositionUpdateRequest struct {
+	Note string `json:"note" binding:"required"`
+}
 
 type PositionURI struct {
-	PortfolioID uint `uri:"portfolio_id" binding:"uint"`
-	PositionID  uint `uri:"position_id" binding:"uint"`
+	PortfolioID uint `uri:"portfolio_id"`
+	PositionID  uint `uri:"position_id"`
 }
 
 func GetPositionByID(context *gin.Context) {
@@ -51,7 +54,7 @@ func GetPositionByID(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"data": record})
+	context.JSON(http.StatusOK, gin.H{"data": position})
 
 }
 func GetPositions(context *gin.Context) {
@@ -75,8 +78,8 @@ func GetPositions(context *gin.Context) {
 		return
 	}
 
-	records := database.Instance.Where("portfolio_id = ?", uri.PortfolioID).Find(&position)
-	if records.Error != nil {
+	record := database.Instance.Where("portfolio_id = ?", uri.PortfolioID).Find(&position)
+	if record.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "position.get_all.error",
 		})
@@ -85,11 +88,11 @@ func GetPositions(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"data": records})
+	context.JSON(http.StatusOK, gin.H{"data": position})
 
 }
 func CreatePosition(context *gin.Context) {
-	var request PositionRequest
+	var request PositionCreateRequest
 	var uri PositionURI
 	var position models.Position
 	localizer, exists := context.Get("localizer")
@@ -140,7 +143,7 @@ func CreatePosition(context *gin.Context) {
 	context.JSON(http.StatusCreated, gin.H{"message": message, "id": position.ID})
 }
 func UpdatePosition(context *gin.Context) {
-	var request PositionRequest
+	var request PositionUpdateRequest
 	var uri PositionURI
 	var position models.Position
 	localizer, exists := context.Get("localizer")
@@ -181,9 +184,6 @@ func UpdatePosition(context *gin.Context) {
 		context.Abort()
 		return
 	}
-
-	position.Ticker = request.Ticker
-	position.Exchange = request.Exchange
 	position.Note = request.Note
 
 	// Сохранение изменений и проверка на ошибки

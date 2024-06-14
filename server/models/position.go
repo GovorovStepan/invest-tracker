@@ -6,7 +6,7 @@ import (
 
 type Position struct {
 	gorm.Model
-	PortfolioID uint      `json:"portfolioId" gorm:"unique"`
+	PortfolioID uint      `json:"portfolioId"`
 	Portfolio   Portfolio `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Ticker      string    `json:"ticker"`
 	Exchange    string    `json:"exchange"`

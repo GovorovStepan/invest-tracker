@@ -32,7 +32,7 @@ func GetSettings(context *gin.Context) {
 		return
 	}
 
-	record := database.Instance.Where("user = ?", userID).First(&settings)
+	record := database.Instance.Where("user_id = ?", userID).First(&settings)
 
 	if record.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
@@ -43,7 +43,7 @@ func GetSettings(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"data": record})
+	context.JSON(http.StatusOK, gin.H{"data": settings})
 }
 
 func UpdateSettings(context *gin.Context) {
@@ -74,7 +74,7 @@ func UpdateSettings(context *gin.Context) {
 		context.Abort()
 		return
 	}
-	record := database.Instance.Where("user = ?", userID).First(&settings)
+	record := database.Instance.Where("user_id = ?", userID).First(&settings)
 
 	if record.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{

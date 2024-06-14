@@ -14,18 +14,9 @@ func addPortfolioRoutes(rg *gin.RouterGroup) {
 	portfolio.Use(middlewares.Auth())
 	{
 		portfolio.POST("/", controllers.CreatePortfolio)
-		portfolio.GET("/:id", controllers.GetPortfolio)
-		portfolio.PUT("/:id", controllers.UpdatePortfolio)
-		portfolio.DELETE("/:id", controllers.DeletePortfolio)
-
-		// positions := portfolio.Group("/:portfolio_id/positions")
-		// {
-		// 	positions.POST("/", controllers.CreatePosition)
-		// 	positions.GET("/", controllers.GetPositions)
-		// 	positions.GET("/:position_id", controllers.GetPositionByID)
-		// 	positions.PUT("/:position_id", controllers.UpdatePosition)
-		// 	positions.DELETE("/:position_id", controllers.DeletePosition)
-		// }
+		portfolio.GET("/:portfolio_id", controllers.GetPortfolio)
+		portfolio.PUT("/:portfolio_id", controllers.UpdatePortfolio)
+		portfolio.DELETE("/:portfolio_id", controllers.DeletePortfolio)
 	}
 
 	addPositionsRoutes(portfolio)

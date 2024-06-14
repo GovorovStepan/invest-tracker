@@ -14,7 +14,7 @@ type PortfolioRequest struct {
 }
 
 type PortfolioURI struct {
-	ID uint `uri:"id" binding:"required,uint"`
+	ID uint `uri:"portfolio_id" binding:"required"`
 }
 
 func GetPortfolio(context *gin.Context) {
@@ -50,7 +50,7 @@ func GetPortfolio(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, gin.H{"data": record})
+	context.JSON(http.StatusOK, gin.H{"data": portfolio})
 }
 
 func DeletePortfolio(context *gin.Context) {

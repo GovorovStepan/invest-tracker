@@ -8,7 +8,7 @@ import (
 
 func addPositionsRoutes(rg *gin.RouterGroup) {
 
-	positions := rg.Group("/:portfolio_id/positions")
+	positions := rg.Group("/:portfolio_id/position")
 	{
 		positions.POST("/", controllers.CreatePosition)
 		positions.GET("/", controllers.GetPositions)

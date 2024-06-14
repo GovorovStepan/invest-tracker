@@ -6,7 +6,7 @@ import (
 
 type Portfolio struct {
 	gorm.Model
-	UserID uint   `json:"userId" gorm:"unique"`
+	UserID uint   `json:"userId"`
 	User   User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Name   string `json:"name"`
 }
