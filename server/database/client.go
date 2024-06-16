@@ -28,6 +28,7 @@ func Migrate() {
 	Instance.AutoMigrate(&models.Settings{})
 	Instance.AutoMigrate(&models.Portfolio{})
 	Instance.AutoMigrate(&models.Position{})
+	Instance.AutoMigrate(&models.Transaction{})
 	log.Println("DB migration completed!")
 }
 

@@ -201,7 +201,7 @@ func DeleteTransaction(context *gin.Context) {
 
 	result := database.Instance.First(&transaction, uri.TransactionID)
 
-	if result.Error == nil {
+	if result.Error != nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "transaction.delete.error",
 		})

@@ -1,12 +1,7 @@
 package models
 
-import (
-	"gorm.io/gorm"
-)
-
 type Portfolio struct {
-	gorm.Model
-	UserID uint   `json:"userId"`
-	User   User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Model
+	UserID uint   `json:"userId" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Name   string `json:"name"`
 }
