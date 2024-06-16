@@ -80,7 +80,7 @@ func DeletePortfolio(context *gin.Context) {
 
 	result := database.Instance.First(&portfolio, uri.ID)
 
-	if result.Error != nil {
+	if result.Error == nil {
 		message := localizerInstance.MustLocalize(&i18n.LocalizeConfig{
 			MessageID: "portfolio.delete.error",
 		})
