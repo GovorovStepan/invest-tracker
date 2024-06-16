@@ -17,4 +17,6 @@ func addPositionsRoutes(rg *gin.RouterGroup) {
 		positions.DELETE("/:position_id", controllers.DeletePosition)
 	}
 
+	addTransactionRoutes(positions)
+
 }

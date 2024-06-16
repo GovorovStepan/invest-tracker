@@ -58,5 +58,22 @@
       "error": "Position delete error",
       "success": "Position deleted successfully"
     }
+  },
+  "transaction": {
+    "get_all": {
+      "error": "Transactions get error"
+    },
+    "create": {
+      "error": "Transaction addition error",
+      "success": "Transaction added successfully"
+    },
+    "update": {
+      "error": "Transaction update error",
+      "success": "Transaction updated successfully"
+    },
+    "delete": {
+      "error": "Transaction delete error",
+      "success": "Transaction deleted successfully"
+    }
   }
 }
